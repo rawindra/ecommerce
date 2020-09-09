@@ -48,8 +48,8 @@
                 </div>
                 <div class="fw-size-choose">
                     <h5>
-                        <span class="badge badge-secondary variant" style="cursor:pointer">
-                            @foreach ($variantValues as $value)
+                        {{-- <span class="badge badge-secondary variant" style="cursor:pointer"> --}}
+                            {{-- @foreach ($variantValues as $value)
                             @foreach ($value->main_attr_value as $key =>$val)
                             @php
                             $attribute = App\Models\ProductAttribute::where('id',$key)->get();
@@ -64,8 +64,38 @@
                             <br>
                             @endforeach
                             @endforeach
+                            @endforeach --}}
+                            @php
+                                $attributesArray = App\Models\ProductVariant::where('product_id', $product->id)->select('attr_name')->groupBy('attr_name')->pluck('attr_name')->toArray();
+                            @endphp
+                            @foreach ($attributesArray as $attr_id)
+                                @php 
+                                    $attribute = App\Models\ProductAttribute::findorfail($attr_id); 
+                                    $attributesValueArray = App\Models\ProductVariant::where('product_id', $product->id)->where('attr_name', $attribute->id)->select('attr_value')->groupBy('attr_value')->pluck('attr_value')->toArray();
+                                @endphp
+                                
+                                    <span class="badge badge-secondary variant" style="cursor:pointer">
+                                        {{$attribute->attr_name}}
+                                    </span>
+                                    
+                                            @php 
+                                                $attributeVariants =  App\Models\ProductVariantValue::where('product_id', $product->id)->select('main_attr_value')->pluck('main_attr_value')->toArray();
+                                                $attrKey = array_values(array_unique((array_map(function($key) use ($attribute) {
+                                                    return $key[$attribute->id];
+                                                },$attributeVariants))));
+                                                
+                                                $attributeValues = App\Models\ProductAttributeValue::whereIn('id', $attrKey)->select('id', 'values')->pluck('values','id')->toArray();                
+                                            @endphp
+                                            <select name="attribute_values[]">
+                                                @foreach($attributeValues as $key => $value)
+                                                    <option value="{{$key}}">{{$value}}</option>
+                                                @endforeach
+                                            </select>
+                                    
+                                    <br>
                             @endforeach
-                        </span>
+
+                        {{-- </span> --}}
                     </h5>
                 </div>
                 <a id="addToCart" href="#" class="site-btn">Add To
